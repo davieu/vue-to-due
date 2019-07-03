@@ -71,33 +71,28 @@ module.exports = app => {
       });
     }
   })
-
+  
+  // Get a single todo by its ID from a users' todo list. returns the Index of that todo
   app.get('/api/user/:id/todo/:todoid', async (req, res, next) => {
     try {
       const findUserById = await User.findById(req.params.id).exec();
-      findUserById.todos.forEach(todo => {
-        console.log(req.params.todoid)
-        console.log(todo._id)
-        // console.log(typeof todo._id)
-        // console.log(typeof req.params.todoid)
-        
-        // console.log(todo._id == req.params.todoid)
-        // console.log(todo._id)
-        // console.log('param :', req.params.todoid)
-        // if () {
-
-        // }
+      // Finds the index of the req.params.todoid for the array of todos for the user
+      const todoIndex = findUserById.todos.findIndex(todo => {
+        return todo._id == req.params.todoid
       })
-      // findUserById.todo.findById(req.params.index)
-      // const test = await findUserById.todo.findById(req.params.idd).exec()
-      // const result = await test
-      // console.log(test)
-      res.send(findUserById.todos[0])
-
-
+      // Gets the single todo from the todos array
+      const singleTodo = findUserById.todos[todoIndex]
+      // This will catch the err if todoIndex comes up -1 for ID not found. 
+      if (todoIndex === -1) {
+        return res.status(404).send({msg: 'Todo item not found with the ID specified'})
+      } else {
+        // Sends the specific todo by its ID and also its index
+        return res.send({singleTodo, todoIndex})
+      }
+      
     } catch(err) {
       return res.status(404).send({
-        msg: 'Could not find todo',
+        msg: 'Todo item not found in this user',
         err
       });
     }
