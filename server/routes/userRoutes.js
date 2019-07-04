@@ -115,7 +115,7 @@ module.exports = app => {
       return res.send(result);
 
     } catch(err) {
-      res.status(400).send({
+      return res.status(400).send({
         msg: 'Please try again. Could not activate account',
         err
       })
@@ -182,14 +182,24 @@ module.exports = app => {
   });
 
   // Delete a single todo by ID
-  // app.delete('/api/user/:id/todo/:todoid', async (req, res, next) => {
-  //   try {
-  //     const findUserById = User.findById(req.params.id).exec();
-  //   } catch(err) {
-  //     return res.status(404).send({
-  //       msg: 'Todo item not found for deletion',
-  //       err
-  //     })
-  //   }
-  // })
+  app.delete('/api/user/:id/todo/:todoid', async (req, res, next) => {
+    try {
+      const findUserById = await User.findById(req.params.id);
+      // Find the index of the todo id in the todos array for the user
+      const todoIndex = findUserById.todos.findIndex(todo => {
+        return todo._id == req.params.todoid
+      })
+      
+      // Splice/remove the todo at the specified index
+      const todoRemoved = findUserById.todos.splice(todoIndex, 1)
+      const result = await findUserById.save()
+      return res.send({ result, todoRemoved })
+
+    } catch(err) {
+      return res.status(404).send({
+        msg: 'Todo item not found for deletion',
+        err
+      })
+    }
+  })
 }
