@@ -9,9 +9,11 @@ const UserSchema = new Schema({
     dateCreated: { type: Date, default: Date.now }, 
     dateModified: { type: Date, default: Date.now },
     text: String,
-    status: false
+    todoStatus: { type: Boolean, default: false}
   }],
   dateJoined: { type: Date, default: Date.now },
+  dateModified: { type: Date, default: Date.now },
+  userActive: { type: Boolean, default: true }
 });
 
 const User = mongoose.model('User', UserSchema, 'users');

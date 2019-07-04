@@ -27,11 +27,45 @@ module.exports = app => {
     }
   })
 
-  // Get all users
+  // Get all active users
+  app.get('/api/users/active', async (req, res, next) => {
+    try {
+      const getAllUsers = await User.find().exec();
+      const activeUsers = getAllUsers.filter(user => {
+        return user.userActive === true;
+      })
+      return res.send(activeUsers);
+
+    } catch(err) {
+      return res.status(404).send({
+        msg: 'Users could not be found please try again',
+        err
+      })
+    }
+  })
+
+  // Get all inactive users
+  app.get('/api/users/inactive', async (req, res, next) => {
+    try {
+      const getAllUsers = await User.find().exec();
+      const inActive = getAllUsers.filter(user => {
+        return user.userActive === false;
+      })
+      return res.send(inActive);
+
+    } catch(err) {
+      return res.status(404).send({
+        msg: 'Users could not be found please try again',
+        err
+      })
+    }
+  })
+
+  // Get all users active and inactive
   app.get('/api/users', async (req, res, next) => {
     try {
       const getAllUsers = await User.find().exec();
-      return res.send(getAllUsers)
+      return res.send(getAllUsers);
 
     } catch(err) {
       return res.status(404).send({
@@ -45,10 +79,44 @@ module.exports = app => {
   app.get('/api/user/:id', async (req, res, next) => {
     try {
       const findUserById = await User.findById(req.params.id).exec();
-      res.send(findUserById)
+      return res.send(findUserById)
+
     } catch(err) {
-      res.status(404).send({
+      return res.status(404).send({
         msg: 'User not found',
+        err
+      })
+    }
+  })
+
+  // Delete/deactivate user by ID. I am not deleteing user out of DB. I am deactivating account. Will still have data.
+  app.delete('/api/user/:id/deactivate', async (req, res, next) => {
+    try {
+      const findUserById = await User.findById(req.params.id).exec();
+      // const deletedUser = User.deleteOne({ _id: req.params.id }).exec();
+      findUserById.set({ userActive: false, dateModified: new Date() })
+      const result = await findUserById.save();
+      return res.send(result)
+
+    } catch (err) {
+      return res.status(400).send({
+        msg: 'Please try again could not delete',
+        err
+      })
+    }
+  })
+
+  // Activate user
+  app.put('/api/user/:id/activate', async (req, res, next) => {
+    try {
+      const findUserById = await User.findById(req.params.id).exec();
+      findUserById.set({ userActive: true, dateModified: new Date() })
+      const result = await findUserById.save();
+      return res.send(result);
+
+    } catch(err) {
+      res.status(400).send({
+        msg: 'Please try again. Could not activate account',
         err
       })
     }
@@ -72,6 +140,21 @@ module.exports = app => {
     }
   })
   
+  // Get all todos from a user based on ID
+  app.get('/api/user/:id/todo', async (req, res, next) => {
+    try {
+      const findUserById = await User.findById(req.params.id).exec();
+      const userTodos = findUserById.todos
+      return res.send({userTodos})
+
+    } catch(err) {
+      return res.status(404).send({
+        msg: 'Could not get todos list',
+        err
+      })
+    }
+  })
+
   // Get a single todo by its ID from a users' todo list. returns the Index of that todo
   app.get('/api/user/:id/todo/:todoid', async (req, res, next) => {
     try {
@@ -81,20 +164,32 @@ module.exports = app => {
         return todo._id == req.params.todoid
       })
       // Gets the single todo from the todos array
-      const singleTodo = findUserById.todos[todoIndex]
+      const singleTodoByID = findUserById.todos[todoIndex]
       // This will catch the err if todoIndex comes up -1 for ID not found. 
       if (todoIndex === -1) {
         return res.status(404).send({msg: 'Todo item not found with the ID specified'})
       } else {
         // Sends the specific todo by its ID and also its index
-        return res.send({singleTodo, todoIndex})
+        return res.send({singleTodoByID, todoIndex})
       }
       
     } catch(err) {
       return res.status(404).send({
-        msg: 'Todo item not found in this user',
+        msg: 'Cannot get todo item',
         err
       });
     }
   });
+
+  // Delete a single todo by ID
+  // app.delete('/api/user/:id/todo/:todoid', async (req, res, next) => {
+  //   try {
+  //     const findUserById = User.findById(req.params.id).exec();
+  //   } catch(err) {
+  //     return res.status(404).send({
+  //       msg: 'Todo item not found for deletion',
+  //       err
+  //     })
+  //   }
+  // })
 }
