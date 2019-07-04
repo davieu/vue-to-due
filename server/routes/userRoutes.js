@@ -190,11 +190,16 @@ module.exports = app => {
         return todo._id == req.params.todoid
       })
       
-      // Splice/remove the todo at the specified index
-      const todoRemoved = findUserById.todos.splice(todoIndex, 1)
-      const result = await findUserById.save()
-      return res.send({ result, todoRemoved })
-
+      // if todoIndex is not found then index will be -1. Which in the splice it will remove the last todo in the array. I need to implement failsafe so it does not count -1 as an index for splice to delete.
+      if (todoIndex === -1) {
+        return res.status(404).send({ msg: 'Todo item not found for deletion' })
+      } else {
+          // Splice/remove the todo at the specified index
+        const todoRemoved = findUserById.todos.splice(todoIndex, 1)
+        const result = await findUserById.save()
+        return res.send({ result, todoRemoved })
+      }
+      
     } catch(err) {
       return res.status(404).send({
         msg: 'Todo item not found for deletion',
@@ -202,4 +207,5 @@ module.exports = app => {
       })
     }
   })
+  
 }
