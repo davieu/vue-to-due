@@ -126,6 +126,7 @@ module.exports = app => {
   app.post('/api/user/:id/todo', async (req, res, next) => {
     try {
       const findUserById = await User.findById(req.params.id).exec();
+      findUserById.set({ dateModified: new Date() })
       findUserById.todos.push({
         text: req.body.text
       })
@@ -194,11 +195,13 @@ module.exports = app => {
       if (todoIndex === -1) {
         return res.status(404).send({ msg: 'Todo item not found for deletion' })
       } else {
+        findUserById.set({ dateModified: new Date() })
           // Splice/remove the todo at the specified index
         const todoRemoved = findUserById.todos.splice(todoIndex, 1)
         const result = await findUserById.save()
         return res.send({ result, todoRemoved })
       }
+      // 2019-07-04T00:55:02.997+00:00
       
     } catch(err) {
       return res.status(404).send({
@@ -207,5 +210,5 @@ module.exports = app => {
       })
     }
   })
-  
+
 }
