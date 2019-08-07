@@ -141,7 +141,7 @@ module.exports = app => {
     }
   })
   
-  // Get all todos from a user based on ID
+  // Get all todos from a user based on ID for the frontend
   app.get('/api/user/:id/todo', async (req, res, next) => {
     try {
       const findUserById = await User.findById(req.params.id).exec();
